@@ -24,7 +24,9 @@ export interface PaymentProviderProps {
 
 export const PaymentProvider: FC<PaymentProviderProps> = ({ children }) => {
     const { connection } = useConnection();
-    const { link, recipient, splToken, label, message, requiredConfirmations, connectWallet } = useConfig();
+    const {
+        link, recipient, splToken, label, message, requiredConfirmations, connectWallet
+    } = useConfig();
     const { publicKey, sendTransaction } = useWallet();
 
     const router = useRouter();
@@ -43,13 +45,13 @@ export const PaymentProvider: FC<PaymentProviderProps> = ({ children }) => {
         return asBigNumber;
     });
 
-    const [memo, setMemo] = useState<string>();
-    const [reference, setReference] = useState<PublicKey>();
-    const [signature, setSignature] = useState<TransactionSignature>();
-    const [status, setStatus] = useState(PaymentStatus.New);
+    const [memo, setMemo]                   = useState<string>();
+    const [reference, setReference]         = useState<PublicKey>();
+    const [signature, setSignature]         = useState<TransactionSignature>();
+    const [status, setStatus]               = useState(PaymentStatus.New);
     const [confirmations, setConfirmations] = useState<Confirmations>(0);
-    const navigate = useNavigateWithQuery();
-    const progress = useMemo(() => confirmations / requiredConfirmations, [confirmations, requiredConfirmations]);
+    const navigate                          = useNavigateWithQuery();
+    const progress                          = useMemo(() => confirmations / requiredConfirmations, [confirmations, requiredConfirmations]);
 
     const url = useMemo(() => {
         if (link) {
@@ -230,7 +232,7 @@ export const PaymentProvider: FC<PaymentProviderProps> = ({ children }) => {
         const interval = setInterval(async () => {
             try {
                 const response = await connection.getSignatureStatus(signature);
-                const status = response.value;
+                const status   = response.value;
                 if (!status) return;
                 if (status.err) throw status.err;
 

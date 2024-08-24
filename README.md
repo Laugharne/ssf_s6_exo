@@ -3,17 +3,18 @@
 
 ![](assets/2024-08-24-14-30-12.png)
 
+## Exercice:
+
 Build a **Point-Of-Sale Web UI** for adding products and checking out with **Solana Pay**. The payment confirmation should be displayed after checkout.
 
 
-> Not being a "front-end" developer, I started from a [existing base](https://github.com/anza-xyz/solana-pay/tree/master/examples/point-of-sale) as framework to help me, in order to minimize the Next development time and focus mainly on understanding **Solana Pay** itself.
+> Not being a "front-end" developer, I started from a [existing base](https://github.com/anza-xyz/solana-pay/tree/master/examples/point-of-sale) as framework to help me, in order to minimize the NextJS development time and focus mainly on understanding **Solana Pay** itself.
 
-
-**Table Of Content**
 
 <!-- TOC -->
 
 - [Solana Pay Point-Of-Sale](#solana-pay-point-of-sale)
+	- [Exercice:](#exercice)
 	- [Prerequisites](#prerequisites)
 			- [Create merchant wallet](#create-merchant-wallet)
 			- [Create customer wallet](#create-customer-wallet)
@@ -39,6 +40,8 @@ Build a **Point-Of-Sale Web UI** for adding products and checking out with **Sol
 			- [Creating and Sending the Transaction](#creating-and-sending-the-transaction)
 			- [Waiting for transaction confirmation](#waiting-for-transaction-confirmation)
 	- [Resources](#resources)
+
+<!-- /TOC -->
 
 <!-- /TOC -->
 
@@ -210,11 +213,15 @@ This memoized function constructs the **payment URL**, which encodes all the nec
 
 Let’s delve into the `encodeURL()`. This function plays a critical role in **generating the payment URL**, which encodes all the necessary details for the transaction.
 
-The `encodeURL()` function is part of the Solana Pay SDK. Its primary role is to take the payment parameters (like the recipient, amount, SPL token, etc...) and encode them into a URL format that can be easily shared or used to initiate a payment.
+The `encodeURL()` function is part of the S**olana Pay SDK**. Its primary role is to take the payment parameters (like the recipient, amount, SPL token, etc...) and encode them into a URL format that can be shared or used to initiate a payment.
 
 This URL can be processed by **wallets** or **payment gateways** to complete the transaction.
 
-`encodeURL()` is used inside a `useMemo` hook to generate a payment URL:
+`encodeURL()` is used inside a `useMemo` hook to generate a **payment URL**:
+
+The code checks if a `link` is provided:
+- If `link` exist The URL is built using the provided link as a base, and additional payment parameters (like `recipient`, `amount`, etc...) are appended as query parameters.
+- Else The URL is constructed from scratch using the provided payment parameters.
 
 ```typescript
 const url = useMemo(() => {
