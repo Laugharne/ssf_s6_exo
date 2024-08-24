@@ -1,11 +1,420 @@
 
+# Solana Pay Point-Of-Sale
 
+![](assets/2024-08-24-14-30-12.png)
+
+Build a **Point-Of-Sale Web UI** for adding products and checking out with **Solana Pay**. The payment confirmation should be displayed after checkout.
+
+
+> Not being a "front-end" developer, I started from a [existing base](https://github.com/anza-xyz/solana-pay/tree/master/examples/point-of-sale) as framework to help me, in order to minimize the Next development time and focus mainly on understanding **Solana Pay** itself.
+
+
+**Table Of Content**
+
+<!-- TOC -->
+
+- [Solana Pay Point-Of-Sale](#solana-pay-point-of-sale)
+	- [Prerequisites](#prerequisites)
+			- [Create merchant wallet](#create-merchant-wallet)
+			- [Create customer wallet](#create-customer-wallet)
+			- [Set Phantom to connect to devnet](#set-phantom-to-connect-to-devnet)
+			- [Airdrop SOL to customer wallet](#airdrop-sol-to-customer-wallet)
+	- [Getting Started](#getting-started)
+		- [Install dependencies](#install-dependencies)
+		- [Starting a local dev server](#starting-a-local-dev-server)
+		- [Starting a local SSL proxy](#starting-a-local-ssl-proxy)
+		- [Open the point of sale app](#open-the-point-of-sale-app)
+	- [Components used with Solana Pay](#components-used-with-solana-pay)
+		- ["QRCode.tsx"](#qrcodetsx)
+			- [Imports from 'solana/pay'](#imports-from-solanapay)
+			- [size state](#size-state)
+			- [Payment URL](#payment-url)
+			- [QR Code options](#qr-code-options)
+			- [QR Code instance](#qr-code-instance)
+			- [Rendering the component](#rendering-the-component)
+		- ["PaymentProvider.tsx"](#paymentprovidertsx)
+			- [Summary of Solana Pay Essentials:](#summary-of-solana-pay-essentials)
+			- [Transaction URL Construction useMemo](#transaction-url-construction-usememo)
+			- [encodeURL](#encodeurl)
+			- [Creating and Sending the Transaction](#creating-and-sending-the-transaction)
+			- [Waiting for transaction confirmation](#waiting-for-transaction-confirmation)
+	- [Resources](#resources)
+
+<!-- /TOC -->
+
+--------
+
+
+
+This is an example of how you can use the `@solana/pay` JavaScript library to create a simple point of sale system.
+
+You can [check out the app](https://app.solanapay.com?recipient=GvHeR432g7MjN9uKyX3Dzg66TqwrEWgANLnnFZXMeyyj&label=Solana+Pay), use the code as a reference, or run it yourself to start accepting decentralized payments in-person.
+
+## Prerequisites
+
+
+-   <details>
+        <summary> Setup two wallets on <a href="https://phantom.app">Phantom</a> (Merchant and Customer) </summary>
+
+    #### 1. Create merchant wallet
+
+    Follow the [guide][1] on how to create a wallet. This wallet will provide the recipient address.
+
+    #### 2. Create customer wallet
+
+    Follow the [guide][1] on how to create another wallet. This wallet will be paying for the goods/services.
+
+    #### 3. Set Phantom to connect to devnet
+
+    1. Click the settings icon in the Phantom window
+    2. Select the "Change network" option and select "Devnet"
+
+    #### 4. Airdrop SOL to customer wallet
+
+    Use [solfaucet][3] to airdrop SOL to the customer wallet.
+
+    > You'll need SOL in the customer wallet to pay for the goods/services + transaction fees
+
+ </details>
+
+## Getting Started
+
+
+### Install dependencies
+```shell
+npm install
+```
+
+### Starting a local dev server
+```shell
+npm run dev
+```
+
+### Starting a local SSL proxy
+
+In an other terminal (_same path_)
+
+```shell
+npm run proxy
+```
+
+### Open the point of sale app
+
+[` https://localhost:3001?recipient=26BLvEsyA6n1eVDyV8U4g78V47M7v6PQ4QHmedV12mz5&label=Solana+Summer+Pizza `](https://localhost:3001?recipient=26BLvEsyA6n1eVDyV8U4g78V47M7v6PQ4QHmedV12mz5&label=Solana+Summer+Pizza)
+
+You may need to accept a locally signed SSL certificate to open the page.
+
+--------
+
+## Components used with Solana Pay
+
+### "QRCode.tsx"
+
+> src/client/components/contexts/QRCode.tsx
+
+This `QRCode` component is designed to display dynamically a **QR code** based on a **payment URL**.
+
+#### Imports from 'solana/pay'
+
+```typescript
+import { createQROptions } from '@solana/pay';
+import QRCodeStyling from '@solana/qr-code-styling';
+```
+
+#### `size` state
+
+```typescript
+const [size, setSize] = useState(() =>
+    typeof window === 'undefined' ? 400 : Math.min(window.screen.availWidth - 48, 400)
+);
+```
+The state `size` represents the size of the QR code. If the code is executed server-side (`typeof window === 'undefined'`), the default size is set to 400 pixels. Otherwise, it calculates the size based on the available screen width (`window.screen.availWidth`), minus 48 pixels, with a maximum of 400 pixels.
+
+
+#### Payment URL
+
+```typescript
+const { url } = usePayment();
+```
+This hook retrieves the necessary payment data, specifically the payment URL (`url`), which is used to generate the **QR code**.
+
+
+#### QR Code options
+
+```typescript
+const options = useMemo(() => createQROptions(url, size, 'transparent', '#2a2a2a'), [url, size]);
+```
+The QR code options, generated by `createQROptions()`, are recalculated only when the payment URL (`url`) or the size (`size`) changes. This optimizes performance by avoiding unnecessary recalculations.
+
+The QR code is configured with a transparent background and a black color (`#2a2a2a`) for the QR code itself.
+
+
+#### QR Code instance
+
+```typescript
+const qr = useMemo(() => new QRCodeStyling(), []);
+```
+This library allows the creation of customized QR codes. `useMemo` ensures that the `QRCodeStyling` instance is only created once (on the first render).
+
+
+#### Rendering the component
+
+```typescript
+useEffect(() => qr.update(options), [qr, options]);
+```
+Whenever the **QR code options** change (_due to changes in the URL or size_), the **QR code instance** is updated with the new options.
+
+```typescript
+const ref = useRef<HTMLDivElement>(null);
+```
+This reference is used to directly access a DOM element (`div`) where the **QR code** will be rendered.
+
+```typescript
+useEffect(() => {
+    if (ref.current) {
+        qr.append(ref.current);
+    }
+}, [ref, qr]);
+```
+Once the `ref` to the `div` is set (_not null_), the QR code is appended to this DOM element using the `append()` method.
+
+```typescript
+return <div ref={ref} className={css.root} />;
+```
+The component returns a simple `div` with a reference (`ref`) and a CSS class. This `div` is where the QR code will be rendered.
+
+
+### "PaymentProvider.tsx"
+
+> src/client/components/sections/QRCode.tsx
+
+#### Summary of Solana Pay Essentials:
+
+- **Connection to Solana**: Interaction with the blockchain is enabled via the `connection` object.
+- **Wallet Integration**: User transactions are facilitated through their connected wallet.
+- **Transaction Management**: The code handles the entire lifecycle of a transaction, from creation to finalization.
+- **Real-time Monitoring**: The system continuously checks for transaction confirmations and validates them to ensure the payment process is secure and accurate.
+
+These elements form the backbone of a Solana Pay implementation !
+
+#### Transaction URL Construction (`useMemo`)
+
+```typescript
+const url = useMemo(() => {
+    // URL generation logic based on whether a link is provided
+}, [link, recipient, amount, splToken, reference, label, message, memo]);
+```
+This memoized function constructs the **payment URL**, which encodes all the necessary payment details.
+
+#### `encodeURL()`
+
+Let’s delve into the `encodeURL()`. This function plays a critical role in **generating the payment URL**, which encodes all the necessary details for the transaction.
+
+The `encodeURL()` function is part of the Solana Pay SDK. Its primary role is to take the payment parameters (like the recipient, amount, SPL token, etc...) and encode them into a URL format that can be easily shared or used to initiate a payment.
+
+This URL can be processed by **wallets** or **payment gateways** to complete the transaction.
+
+`encodeURL()` is used inside a `useMemo` hook to generate a payment URL:
+
+```typescript
+const url = useMemo(() => {
+    if (link) {
+        const url = new URL(String(link));
+
+        url.searchParams.append('recipient', recipient.toBase58());
+
+        if (amount) {
+            url.searchParams.append('amount', amount.toFixed(amount.decimalPlaces() ?? 0));
+        }
+
+        if (splToken) {
+            url.searchParams.append('spl-token', splToken.toBase58());
+        }
+
+        if (reference) {
+            url.searchParams.append('reference', reference.toBase58());
+        }
+
+        if (memo) {
+            url.searchParams.append('memo', memo);
+        }
+
+        if (label) {
+            url.searchParams.append('label', label);
+        }
+
+        if (message) {
+            url.searchParams.append('message', message);
+        }
+
+        return encodeURL({ link: url });
+    } else {
+        return encodeURL({
+            recipient,
+            amount,
+            splToken,
+            reference,
+            label,
+            message,
+            memo,
+        });
+    }
+}, [link, recipient, amount, splToken, reference, label, message, memo]);
+```
+
+**Payment Parameters**:
+
+- The `recipient` public key is encoded in the URL. This key specifies where the payment is sent.
+- If an `amount` is specified, it is encoded in the URL, rounded to the appropriate number of decimal places.
+- If the payment involves an `SPL token`, its public key is included.
+- A `reference` public key that can be used to track the payment is added to the URL.
+- An optional `memo` field is included, which can hold a note or other small pieces of data.
+- The `label` and `message` fields can include metadata about the payment, like a label for the transaction or a message to the recipient.
+
+This URL can be **shared** or **scanned**.
+
+And a wallet can use it to automatically fill in the details for the payment.
+
+
+#### Creating and Sending the Transaction
+
+```typescript
+useEffect(() => {
+    if (status === PaymentStatus.Pending && connectWallet && publicKey) {
+        const run = async () => {
+            try {
+                const request = parseURL(url);
+                let transaction: Transaction;
+
+                if ('link' in request) {
+                    transaction = await fetchTransaction(connection, publicKey, request.link);
+                } else {
+                    transaction = await createTransfer(connection, publicKey, {
+                        recipient: request.recipient,
+                        amount: request.amount,
+                        splToken: request.splToken,
+                        reference: request.reference,
+                        memo: request.memo,
+                    });
+                }
+
+                await sendTransaction(transaction, connection);
+            } catch (error) {
+                console.error(error);
+                setTimeout(run, 5000); // Retry on failure
+            }
+        };
+        run();
+    }
+}, [status, connectWallet, publicKey, url, connection, sendTransaction]);
+```
+This `useEffect` handles the creation and sending of the transaction. Depending on whether a `link` is provided or not, the transaction is either fetched from a link or created with the provided details (recipient, amount, etc...).
+
+Then the transaction is sent using the connected wallet’s `sendTransaction()` method.
+
+
+#### Waiting for transaction confirmation
+
+```typescript
+useEffect(() => {
+    if (status === PaymentStatus.Pending && reference && !signature) {
+        const interval = setInterval(async () => {
+            try {
+                const foundSignature = await findReference(connection, reference);
+                setSignature(foundSignature.signature);
+                setStatus(PaymentStatus.Confirmed);
+            } catch (error) {
+                if (!(error instanceof FindReferenceError)) console.error(error);
+            }
+        }, 250);
+        return () => clearInterval(interval);
+    }
+}, [status, reference, signature, connection]);
+```
+This effect continuously polls the blockchain to find a signature for the transaction. Once the transaction is found and confirmed, the status is updated to `Confirmed`.
+
+
+**Transaction validation**
+
+```typescript
+useEffect(() => {
+    if (status === PaymentStatus.Confirmed && signature && amount) {
+        const run = async () => {
+            try {
+                await validateTransfer(connection, signature, {
+                    recipient,
+                    amount,
+                    splToken,
+                    reference,
+                });
+                setStatus(PaymentStatus.Valid);
+            } catch (error) {
+                console.warn(error);
+                setTimeout(run, 250); // Retry on failure
+            }
+        };
+        run();
+    }
+}, [status, signature, amount, connection, recipient, splToken, reference]);
+```
+Once a transaction is confirmed, this effect validates the transaction details against what was expected. If the validation is successful, the status is updated to `Valid`.
+
+
+**Confirmations**
+
+```typescript
+useEffect(() => {
+    if (status === PaymentStatus.Valid && signature) {
+        const interval = setInterval(async () => {
+            try {
+                const statusResponse = await connection.getSignatureStatus(signature);
+                const confirmations = statusResponse?.value?.confirmations || 0;
+                setConfirmations(confirmations);
+
+                if (confirmations >= requiredConfirmations) {
+                    clearInterval(interval);
+                    setStatus(PaymentStatus.Finalized);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }, 250);
+        return () => clearInterval(interval);
+    }
+}, [status, signature, connection, requiredConfirmations]);
+```
+This effect monitors the transaction confirmations. It checks if the transaction has reached the required number of confirmations to be considered finalized. Once finalized, the status is updated accordingly.
+
+
+
+
+## Resources
+
+**Introduction:**
+- [Solana Pay explained in 100 seconds - YouTube](https://www.youtube.com/watch?v=nV6Y8nXS5-U)
 - [A decentralized, permissionless, and open-source payments protocol | Solana Pay](https://solanapay.com/fr)
+- [Solana Pay | Solana](https://solana.com/developers/courses/solana-pay/solana-pay)
+
+**Quicknode:**
+- [What is Solana Pay and How to Use It](https://www.quicknode.com/guides/solana-development/solana-pay/getting-started-with-solana-pay)
+- [How to Use Solana Pay with Custom Solana Programs](https://www.quicknode.com/guides/solana-development/solana-pay/beyond-pay-custom-programs)
+
+**Anza:**
 - [GitHub - anza-xyz/solana-pay: A new standard for decentralized payments.](https://github.com/anza-xyz/solana-pay)
-- https://docs.solanapay.com/core/transaction-request/merchant-integration
+- [solana-pay/examples/point-of-sale at master · anza-xyz/solana-pay · GitHub](https://github.com/anza-xyz/solana-pay/tree/master/examples/point-of-sale)
+- [app.solanapay.com/](https://app.solanapay.com/new?recipient=GvHeR432g7MjN9uKyX3Dzg66TqwrEWgANLnnFZXMeyyj&label=Solana+Pay)
+- [A simple guide on how to set up Solana Pay's POS system on Devnet - DEV Community](https://dev.to/tunkunmi/a-simple-guide-on-how-to-set-up-solana-pays-pos-system-on-devnet-1jhl)
+- [Solana Storefront with Solana Pay - YouTube](https://www.youtube.com/watch?v=TBQA29217Kk)
+
+**Python:**
+- [GitHub - Solana-Workshops/storefront-solana-pay: A storefront build with Solana Pay!](https://github.com/Solana-Workshops/storefront-solana-pay)
+- [Solana Workshop: SolanaPay Storefront - YouTube](https://www.youtube.com/watch?v=jG-uJqDMpCY)
+
+**Misc:**
+- [Create a transaction request | Solana Pay Docs](https://docs.solanapay.com/core/transaction-request/merchant-integration)
 - [crates.io: Rust Package Registry](https://crates.io/crates/solana-pay)
 - [solana_pay - Rust](https://docs.rs/solana-pay/latest/solana_pay/)
 - [anchor - Integrating Solana Pay with Rust Code - Solana Stack Exchange](https://solana.stackexchange.com/questions/75/integrating-solana-pay-with-rust-code)
-- https://medium.com/@unreal_joova/build-on-solana-from-rust-basics-to-advanced-development-76f99e001a61
-- [GitHub - Solana-Workshops/storefront-solana-pay: A storefront build with Solana Pay!](https://github.com/Solana-Workshops/storefront-solana-pay)
-- [blockchain - How to send SOL with a solana rust contract - Stack Overflow](https://stackoverflow.com/questions/70687744/how-to-send-sol-with-a-solana-rust-contract)
+- [GitHub - 256hax/solana-anchor-react-minimal-example: Solana, Anchor, Metaplex, React Minimal Example. Out of the Box, easy to start!](https://github.com/256hax/solana-anchor-react-minimal-example)
+- [blockchain - Make a Solana program pay for the transaction - Stack Overflow](https://stackoverflow.com/questions/72790319/make-a-solana-program-pay-for-the-transaction)
+- [Solana Pay: Simplify your Transaction Requests [Solana Tutorial] - May 11th '23 - YouTube](https://www.youtube.com/watch?v=8mIBeDMgTDc)
