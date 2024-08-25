@@ -8,24 +8,19 @@
 Build a **Point-Of-Sale Web UI** for adding products and checking out with **Solana Pay**. The payment confirmation should be displayed after checkout.
 
 
-> Not being a "front-end" developer, I started from a [existing base](https://github.com/anza-xyz/solana-pay/tree/master/examples/point-of-sale) as framework to help me, in order to minimize the NextJS development time and focus mainly on understanding **Solana Pay** itself.
+> Not being a "front-end" developer, I started from a robust [existing base](https://github.com/anza-xyz/solana-pay/tree/master/examples/point-of-sale) as framework to help me, in order to minimize the NextJS development time and focus mainly on understanding **Solana Pay** itself and it will be used as a model for future developement.
+
+--------
+
+**TABLE OF CONTENTS**
 
 
 <!-- TOC -->
 
 - [Solana Pay Point-Of-Sale](#solana-pay-point-of-sale)
 	- [Exercice:](#exercice)
-	- [Prerequisites](#prerequisites)
-			- [Create merchant wallet](#create-merchant-wallet)
-			- [Create customer wallet](#create-customer-wallet)
-			- [Set Phantom to connect to devnet](#set-phantom-to-connect-to-devnet)
-			- [Airdrop SOL to customer wallet](#airdrop-sol-to-customer-wallet)
-	- [Getting Started](#getting-started)
-		- [Install dependencies](#install-dependencies)
-		- [Starting a local dev server](#starting-a-local-dev-server)
-		- [Starting a local SSL proxy](#starting-a-local-ssl-proxy)
-		- [Open the point of sale app](#open-the-point-of-sale-app)
-	- [Components used with Solana Pay](#components-used-with-solana-pay)
+	- [Installation](#installation)
+	- [Elements that utilize Solana Pay](#elements-that-utilize-solana-pay)
 		- ["QRCode.tsx"](#qrcodetsx)
 			- [Imports from 'solana/pay'](#imports-from-solanapay)
 			- [size state](#size-state)
@@ -33,8 +28,13 @@ Build a **Point-Of-Sale Web UI** for adding products and checking out with **Sol
 			- [QR Code options](#qr-code-options)
 			- [QR Code instance](#qr-code-instance)
 			- [Rendering the component](#rendering-the-component)
+		- ["index.ts"](#indexts)
+			- [Overview](#overview)
+			- [GET handler](#get-handler)
+			- [POST handler](#post-handler)
+			- [Main handler](#main-handler)
 		- ["PaymentProvider.tsx"](#paymentprovidertsx)
-			- [Summary of Solana Pay Essentials:](#summary-of-solana-pay-essentials)
+			- [Summary of Solana Pay Essentials](#summary-of-solana-pay-essentials)
 			- [Transaction URL Construction useMemo](#transaction-url-construction-usememo)
 			- [encodeURL](#encodeurl)
 			- [Creating and Sending the Transaction](#creating-and-sending-the-transaction)
@@ -43,73 +43,51 @@ Build a **Point-Of-Sale Web UI** for adding products and checking out with **Sol
 
 <!-- /TOC -->
 
-<!-- /TOC -->
-
 --------
 
 
 
-This is an example of how you can use the `@solana/pay` JavaScript library to create a simple point of sale system.
+## Installation
 
-You can [check out the app](https://app.solanapay.com?recipient=GvHeR432g7MjN9uKyX3Dzg66TqwrEWgANLnnFZXMeyyj&label=Solana+Pay), use the code as a reference, or run it yourself to start accepting decentralized payments in-person.
+**Clone the repo:**
 
-## Prerequisites
+```bash
+git clone https://github.com/Laugharne/ssf_s6_exo.git
+```
 
+**Install dependencies:**
 
--   <details>
-        <summary> Setup two wallets on <a href="https://phantom.app">Phantom</a> (Merchant and Customer) </summary>
-
-    #### 1. Create merchant wallet
-
-    Follow the [guide][1] on how to create a wallet. This wallet will provide the recipient address.
-
-    #### 2. Create customer wallet
-
-    Follow the [guide][1] on how to create another wallet. This wallet will be paying for the goods/services.
-
-    #### 3. Set Phantom to connect to devnet
-
-    1. Click the settings icon in the Phantom window
-    2. Select the "Change network" option and select "Devnet"
-
-    #### 4. Airdrop SOL to customer wallet
-
-    Use [solfaucet][3] to airdrop SOL to the customer wallet.
-
-    > You'll need SOL in the customer wallet to pay for the goods/services + transaction fees
-
- </details>
-
-## Getting Started
-
-
-### Install dependencies
-```shell
+```bash
 npm install
 ```
 
-### Starting a local dev server
-```shell
+**Starting a local dev server:**
+
+```bash
 npm run dev
 ```
 
-### Starting a local SSL proxy
+**Starting a local proxy:**
 
-In an other terminal (_same path_)
+In an other terminal (_same path_) run the server who handles responses and transactions.
 
-```shell
+```bash
 npm run proxy
 ```
 
-### Open the point of sale app
+**Local URL:**
 
 [` https://localhost:3001?recipient=26BLvEsyA6n1eVDyV8U4g78V47M7v6PQ4QHmedV12mz5&label=Solana+Summer+Pizza `](https://localhost:3001?recipient=26BLvEsyA6n1eVDyV8U4g78V47M7v6PQ4QHmedV12mz5&label=Solana+Summer+Pizza)
 
-You may need to accept a locally signed SSL certificate to open the page.
+You need a **two wallets** to use the app
+1. One to interact with the app. (_You can use Phantom or any other wallet that supports Solana._)
+2. And another wallet serving as the shop's cash register.
+
+Both need to be funded with SOL, one for payments and the other to facilitate transactions.
 
 --------
 
-## Components used with Solana Pay
+## Elements that utilize Solana Pay
 
 ### "QRCode.tsx"
 
@@ -187,11 +165,107 @@ return <div ref={ref} className={css.root} />;
 The component returns a simple `div` with a reference (`ref`) and a CSS class. This `div` is where the QR code will be rendered.
 
 
+### "index.ts"
+
+> src/server/api/index.tsx
+
+#### Overview
+
+This code defines an API route in a Next.js application that interacts with the Solana blockchain using Solana Pay.
+
+The route handles both `GET` and `POST` requests for this two  functionalities:
+1. Serving metadata about the payment (_like a label and icon_).
+2. Creating a Solana transaction for a payment request.
+
+This API route is designed to facilitate payments on the Solana blockchain using Solana Pay. It provides a way to fetch metadata about a payment request via a `GET` request and to create a payment transaction via a `POST` request.
+
+#### GET handler
+
+The `get` function handles `GET` requests and returns metadata for the payment request.
+
+```typescript
+interface GetResponse {
+    label: string;
+    icon : string;
+}
+
+const get: NextApiHandler<GetResponse> = async (request, response) => {
+    const label = request.query.label;
+    if (!label) throw new Error('missing label');
+    if (typeof label !== 'string') throw new Error('invalid label');
+
+    const icon = `https://${request.headers.host}/solana-pay-logo.svg`;
+
+    response.status(200).send({
+        label,
+        icon,
+    });
+};
+```
+
+#### POST handler
+
+The `post` function handles `POST` requests to create a Solana transaction.
+
+**Input Validation**: The function validates several parameters from the query string (`recipient`, `amount`, `spl-token`, `reference`, `memo`, and `message`) and the request body (`account`).
+
+**Transaction creation**:
+
+- **`createTransfer`**: A transaction is created using the `createTransfer` function, which constructs a transfer operation on the Solana blockchain with the provided parameters (e.g., recipient, amount, SPL token, reference, and memo).
+```typescript
+let transaction = await createTransfer(connection, account, {
+    recipient,
+    amount,
+    splToken,
+    reference,
+    memo,
+});
+```
+- **Serialization**: The transaction is serialized and deserialized to ensure consistent ordering of account keys, which is important for signature verification.
+```typescript
+transaction = Transaction.from(
+    transaction.serialize({
+        verifySignatures    : false,
+        requireAllSignatures: false,
+    })
+);
+```
+- **Response**: The serialized transaction is converted to a base64 string and returned to the client along with an optional message.
+```typescript
+const serialized = transaction.serialize({
+    verifySignatures    : false,
+    requireAllSignatures: false,
+});
+const base64 = serialized.toString('base64');
+
+response.status(200).send({ transaction: base64, message });
+```
+
+#### Main handler
+
+The `index` function serves as the main API handler.
+
+```typescript
+const index: NextApiHandler<GetResponse | PostResponse> = async (request, response) => {
+    await cors(request, response);
+    await rateLimit(request, response);
+
+    if (request.method === 'GET') return get(request, response);
+    if (request.method === 'POST') return post(request, response);
+
+    throw new Error(`Unexpected method ${request.method}`);
+};
+```
+
+- **Middleware Execution**: Runs CORS and rate-limiting middleware to ensure that the API is accessed appropriately and to prevent abuse.
+- **Request Routing**: Depending on the HTTP method, it delegates the request to the appropriate handler.
+
+
 ### "PaymentProvider.tsx"
 
 > src/client/components/sections/QRCode.tsx
 
-#### Summary of Solana Pay Essentials:
+#### Summary of Solana Pay Essentials
 
 - **Connection to Solana**: Interaction with the blockchain is enabled via the `connection` object.
 - **Wallet Integration**: User transactions are facilitated through their connected wallet.
@@ -288,30 +362,43 @@ And a wallet can use it to automatically fill in the details for the payment.
 ```typescript
 useEffect(() => {
     if (status === PaymentStatus.Pending && connectWallet && publicKey) {
+        let changed = false;
+
         const run = async () => {
             try {
                 const request = parseURL(url);
                 let transaction: Transaction;
 
                 if ('link' in request) {
-                    transaction = await fetchTransaction(connection, publicKey, request.link);
+                    const { link } = request;
+                    transaction = await fetchTransaction(connection, publicKey, link);
                 } else {
+                    const { recipient, amount, splToken, reference, memo } = request;
+                    if (!amount) return;
+
                     transaction = await createTransfer(connection, publicKey, {
-                        recipient: request.recipient,
-                        amount: request.amount,
-                        splToken: request.splToken,
-                        reference: request.reference,
-                        memo: request.memo,
+                        recipient,
+                        amount,
+                        splToken,
+                        reference,
+                        memo,
                     });
                 }
 
-                await sendTransaction(transaction, connection);
+                if (!changed) {
+                    await sendTransaction(transaction, connection);
+                }
             } catch (error) {
                 console.error(error);
-                setTimeout(run, 5000); // Retry on failure
+                timeout = setTimeout(run, 5000);
             }
         };
-        run();
+        let timeout = setTimeout(run, 0);
+
+        return () => {
+            changed = true;
+            clearTimeout(timeout);
+        };
     }
 }, [status, connectWallet, publicKey, url, connection, sendTransaction]);
 ```
@@ -370,25 +457,36 @@ Once a transaction is confirmed, this effect validates the transaction details a
 **Confirmations**
 
 ```typescript
-useEffect(() => {
-    if (status === PaymentStatus.Valid && signature) {
+    useEffect(() => {
+        if (!(status === PaymentStatus.Valid && signature)) return;
+        let changed = false;
+
         const interval = setInterval(async () => {
             try {
-                const statusResponse = await connection.getSignatureStatus(signature);
-                const confirmations = statusResponse?.value?.confirmations || 0;
-                setConfirmations(confirmations);
+                const response = await connection.getSignatureStatus(signature);
+                const status   = response.value;
+                if (!status) return;
+                if (status.err) throw status.err;
 
-                if (confirmations >= requiredConfirmations) {
-                    clearInterval(interval);
-                    setStatus(PaymentStatus.Finalized);
+                if (!changed) {
+                    const confirmations = (status.confirmations || 0) as Confirmations;
+                    setConfirmations(confirmations);
+
+                    if (confirmations >= requiredConfirmations || status.confirmationStatus === 'finalized') {
+                        clearInterval(interval);
+                        setStatus(PaymentStatus.Finalized);
+                    }
                 }
-            } catch (error) {
-                console.error(error);
+            } catch (error: any) {
+                console.log(error);
             }
         }, 250);
-        return () => clearInterval(interval);
-    }
-}, [status, signature, connection, requiredConfirmations]);
+
+        return () => {
+            changed = true;
+            clearInterval(interval);
+        };
+    }, [status, signature, connection, requiredConfirmations]);
 ```
 This effect monitors the transaction confirmations. It checks if the transaction has reached the required number of confirmations to be considered finalized. Once finalized, the status is updated accordingly.
 

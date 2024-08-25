@@ -69,7 +69,7 @@ export const PizzaSelection: FC = () => {
 		<table>
 			<tbody>
 			{pizzas.map((pizza) => (
-				<tr>
+				<tr key={pizza.idx}>
 					<td>&nbsp;&nbsp;</td><td className={css.pizzaName}>{pizza.name}</td>
 					<td className={css.pizzaPrice}>{pizza.unit_price}&nbsp;€</td>
 					<td><button className={css.plusminus} onClick={() => onMinus(pizza.idx)}>-</button></td>

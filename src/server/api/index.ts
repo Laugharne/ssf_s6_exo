@@ -7,7 +7,7 @@ import { cors, rateLimit } from '../middleware';
 
 interface GetResponse {
     label: string;
-    icon: string;
+    icon : string;
 }
 
 const get: NextApiHandler<GetResponse> = async (request, response) => {
@@ -79,14 +79,14 @@ const post: NextApiHandler<PostResponse> = async (request, response) => {
     // Serialize and deserialize the transaction. This ensures consistent ordering of the account keys for signing.
     transaction = Transaction.from(
         transaction.serialize({
-            verifySignatures: false,
+            verifySignatures    : false,
             requireAllSignatures: false,
         })
     );
 
     // Serialize and return the unsigned transaction.
     const serialized = transaction.serialize({
-        verifySignatures: false,
+        verifySignatures    : false,
         requireAllSignatures: false,
     });
     const base64 = serialized.toString('base64');
