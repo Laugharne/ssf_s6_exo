@@ -117,19 +117,18 @@ The **QR-Code** generated for ths transaction is:
 
 After scanning the QR-Code with the **Phantom** app of the **mobile phone**, we will see how much it will cost (_fee included_)
 
-![](assets/Screenshot_20240826_111721_Phantom.jpeg)
+![](assets/phone1.png)
 
 Confimation of the transaction
 
-![](assets/Screenshot_20240826_111736_Phantom.jpeg)
+![](assets/phone2.png)
 
 Transaction listed on the recent **activity list**...
 
-![](assets/Screenshot_20240826_112023_Phantom.jpeg)
+![](assets/phone3.png)
 
 
 ### Transaction details
-
 
 - [Solscan](https://solscan.io/tx/4ARWs3xBhpTmTS1NLKhCM4nxyYC5uq9RND6JNVAGqjAWsjpHH1hXAB9yucMEMAHYDrGGfmcrbWtM9A5XSxN6FWqq)
 - [Solana Explorer](https://solana.fm/tx/4ARWs3xBhpTmTS1NLKhCM4nxyYC5uq9RND6JNVAGqjAWsjpHH1hXAB9yucMEMAHYDrGGfmcrbWtM9A5XSxN6FWqq?cluster=mainnet-alpha)
