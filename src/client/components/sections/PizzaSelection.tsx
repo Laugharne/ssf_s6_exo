@@ -26,9 +26,10 @@ export const PizzaSelection: FC = () => {
 		{ idx: 4, name: 'Capricciosa',         unit_price: 4.55, quantity: 0 },
 		{ idx: 5, name: 'Napoli',              unit_price: 3.75, quantity: 0 },
 		{ idx: 6, name: 'Hawaïan',             unit_price: 4.00, quantity: 0 },
+		{ idx: 7, name: 'Special One',         unit_price: 1.00, quantity: 0 },
 	]
 
-	const EURO_TO_SOL = 0.0077;
+	const EURO_TO_SOL = 0.0069981;	// @ 27/08/2024
 
 	const [pizzas, setPizzas] = useState<Pizza[]>(initialPizzas);
 	const updateQuantity = (idx: number, newQuantity: number) => {
