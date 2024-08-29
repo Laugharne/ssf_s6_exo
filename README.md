@@ -19,7 +19,7 @@ Build a **Point-Of-Sale Web UI** for adding products and checking out with **Sol
 
 - [Solana Pay Point-Of-Sale](#solana-pay-point-of-sale)
 	- [Installation](#installation)
-	- [Usage...](#usage)
+	- [Usage with screenshots](#usage-with-screenshots)
 		- [On Web UI](#on-web-ui)
 		- [On Mobile phone](#on-mobile-phone)
 		- [Transaction details](#transaction-details)
@@ -29,13 +29,13 @@ Build a **Point-Of-Sale Web UI** for adding products and checking out with **Sol
 			- [QR Code generation](#qr-code-generation)
 			- [Rendering the component](#rendering-the-component)
 		- ["index.ts"](#indexts)
-			- [Overview](#overview)
+			- [Code overview](#code-overview)
 			- [GET handler](#get-handler)
 			- [POST handler](#post-handler)
 			- [Main handler](#main-handler)
 		- ["PaymentProvider.tsx"](#paymentprovidertsx)
-			- [Overview](#overview)
-			- [Transaction URL Construction encodeURL](#transaction-url-construction-encodeurl)
+			- [Code overview](#code-overview)
+			- [Transaction URL Construction - encodeURL](#transaction-url-construction---encodeurl)
 			- [Creating and Sending the Transaction](#creating-and-sending-the-transaction)
 			- [Waiting for transaction confirmation](#waiting-for-transaction-confirmation)
 	- [Resources](#resources)
@@ -79,7 +79,7 @@ npm run proxy
 
 [` https://localhost:3001?recipient=26BLvEsyA6n1eVDyV8U4g78V47M7v6PQ4QHmedV12mz5&label=Solana+Summer+Pizza `](https://localhost:3001?recipient=26BLvEsyA6n1eVDyV8U4g78V47M7v6PQ4QHmedV12mz5&label=Solana+Summer+Pizza)
 
-You need a **two wallets** to use the app
+You need **two wallets** to use the app
 1. One to interact with the app. (_You can use Phantom or any other wallet that supports Solana._)
 2. And another wallet serving as the shop's cash register.
 
@@ -87,7 +87,7 @@ Both need to be funded with SOL, one for payments and the other to facilitate tr
 
 
 
-## Usage...
+## Usage with screenshots
 
 The final goal of the exercise being simply to complete a transaction with Solana Pay, I didn't bother to implement a dynamic conversion from Euros to SOL or to make a payment in USDC. The conversion rate is therefore **hard-coded** into the code!
 
@@ -221,7 +221,7 @@ The component returns a simple `div` with a reference (`ref`) and a CSS class. T
 
 > src/server/api/index.tsx
 
-#### Overview
+#### Code overview
 
 This code defines an API route in a Next.js application that interacts with the Solana blockchain using Solana Pay.
 
@@ -318,7 +318,7 @@ const index: NextApiHandler<GetResponse | PostResponse> = async (request, respon
 
 > src/client/components/sections/QRCode.tsx
 
-#### Overview
+#### Code overview
 
 - **Connection to Solana**: Interaction with the blockchain is enabled via the `connection` object.
 - **Wallet Integration**: User transactions are facilitated through their connected wallet.
@@ -326,7 +326,7 @@ const index: NextApiHandler<GetResponse | PostResponse> = async (request, respon
 - **Real-time Monitoring**: The system continuously checks for transaction confirmations and validates them to ensure the payment process is secure and accurate.
 
 
-#### Transaction URL Construction (`encodeURL()`)
+#### Transaction URL Construction - `encodeURL()`
 
 ```typescript
 const url = useMemo(() => {
