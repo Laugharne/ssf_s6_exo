@@ -594,3 +594,7 @@ This effect monitors the transaction confirmations. It checks if the transaction
 - [GitHub - 256hax/solana-anchor-react-minimal-example: Solana, Anchor, Metaplex, React Minimal Example. Out of the Box, easy to start!](https://github.com/256hax/solana-anchor-react-minimal-example)
 - [blockchain - Make a Solana program pay for the transaction - Stack Overflow](https://stackoverflow.com/questions/72790319/make-a-solana-program-pay-for-the-transaction)
 - [Solana Pay: Simplify your Transaction Requests [Solana Tutorial] - May 11th '23 - YouTube](https://www.youtube.com/watch?v=8mIBeDMgTDc)
+
+--------
+
+![](assets/julie.png)

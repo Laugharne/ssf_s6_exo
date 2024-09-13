@@ -38,7 +38,7 @@ yarn-error.log*
 
 # misc
 notes.md
-solandy.md
+
 backup/
 .zipignore
 history.log
@@ -46,3 +46,4 @@ versions.log
 notes.txt
 solana_cfg.log
 test-ledger/
+notes/
